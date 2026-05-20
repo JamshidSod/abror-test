@@ -1,0 +1,13 @@
+.git
+.gitignore
+.github
+docs
+tests
+data
+*.md
+__pycache__
+*.pyc
+.venv
+.DS_Store
+Screenshot*.png
+jpg2pdf*.pdf
