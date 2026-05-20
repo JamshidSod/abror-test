@@ -48,3 +48,40 @@ uv run python3 scripts/merge_pages.py
 ## License
 
 Personal study tool. Source content from the original PDF — verify with the source before relying on any answer.
+
+---
+
+## Telegram bot
+
+The same `questions.json` powers a free Telegram quiz bot that sends multiple-choice polls one at a time. Source: `bot/`.
+
+### Local run
+
+```bash
+cd /workspace/Abror_Test
+export BOT_TOKEN=<token from @BotFather>
+export DB_PATH=$(pwd)/bot.sqlite
+uv run --with python-telegram-bot==21.6 python -m bot.bot
+```
+
+Press `Ctrl-C` to stop.
+
+### Deploy to Fly.io (free tier)
+
+1. Install `flyctl` and `flyctl auth login`.
+2. From the repo root: `flyctl launch --copy-config --no-deploy` and pick a unique app name.
+3. `flyctl volumes create bot_data --region fra --size 1`
+4. `flyctl secrets set BOT_TOKEN=<token from @BotFather>`
+5. `flyctl deploy`
+
+To enable auto-deploy on every push to `main`, add a `FLY_API_TOKEN` repo secret (see `.github/workflows/deploy-bot.yml`).
+
+### Bot commands
+
+| Command | Effect |
+|---------|--------|
+| `/start` | Begin or resume the quiz stream |
+| `/stop`  | Pause |
+| `/score` | Lifetime tally |
+| `/full`  | Show last quiz's full text (in case anything was truncated) |
+| `/help`  | List commands |
