@@ -1,0 +1,14 @@
+# Local artefacts
+.DS_Store
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Extracted intermediates — regenerable from the PDF
+data/pages/
+
+# The source PDF is large and lives outside version control normally;
+# keep it for now, but skip if the user re-runs from upstream
+# (commented because user has explicitly shipped it in /workspace/Abror_Test)
+# jpg2pdf (11).pdf
