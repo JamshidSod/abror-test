@@ -1,0 +1,22 @@
+# Fly.io app config for the Abror Test Prep Telegram bot.
+# `app` will be replaced by `flyctl launch` with the user's chosen unique name.
+app = "abror-test-bot"
+primary_region = "fra"
+
+[build]
+
+[env]
+  QUESTIONS_PATH = "/app/questions.json"
+  DB_PATH        = "/data/bot.sqlite"
+
+[mounts]
+  source      = "bot_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1
+
+[processes]
+  bot = "python -m bot.bot"
