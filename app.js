@@ -43,6 +43,33 @@
     els.counter.textContent = `${state.index + 1} / ${state.filtered.length}`;
   }
 
+  function toggleReveal() {
+    state.revealed = !state.revealed;
+    renderCard();
+  }
+
+  function move(delta) {
+    if (!state.filtered.length) return;
+    state.index = (state.index + delta + state.filtered.length) % state.filtered.length;
+    state.revealed = false;
+    renderCard();
+    syncListSelection();
+  }
+
+  function syncListSelection() {
+    const items = els.list.querySelectorAll("li");
+    items.forEach((li) => li.classList.toggle(
+      "active",
+      Number(li.dataset.id) === (state.filtered[state.index]?.id ?? -1),
+    ));
+    const active = els.list.querySelector("li.active");
+    if (active) active.scrollIntoView({ block: "nearest" });
+  }
+
+  els.reveal.addEventListener("click", toggleReveal);
+  els.prev.addEventListener("click", () => move(-1));
+  els.next.addEventListener("click", () => move(1));
+
   async function load() {
     const res = await fetch("questions.json");
     state.all = await res.json();
