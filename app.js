@@ -70,10 +70,38 @@
   els.prev.addEventListener("click", () => move(-1));
   els.next.addEventListener("click", () => move(1));
 
+  function renderList() {
+    const html = state.filtered
+      .map(
+        (q) => `<li data-id="${q.id}"><span class="id">${q.id}.</span><span class="qtext"></span></li>`,
+      )
+      .join("");
+    els.list.innerHTML = html;
+    const items = els.list.querySelectorAll("li");
+    items.forEach((li, i) => {
+      li.querySelector(".qtext").textContent = state.filtered[i].question;
+    });
+    els.matchCount.textContent = `(${state.filtered.length})`;
+    syncListSelection();
+  }
+
+  els.list.addEventListener("click", (ev) => {
+    const li = ev.target.closest("li");
+    if (!li) return;
+    const id = Number(li.dataset.id);
+    const idx = state.filtered.findIndex((q) => q.id === id);
+    if (idx < 0) return;
+    state.index = idx;
+    state.revealed = false;
+    renderCard();
+    syncListSelection();
+  });
+
   async function load() {
     const res = await fetch("questions.json");
     state.all = await res.json();
     state.filtered = state.all;
+    renderList();
     renderCard();
   }
 
