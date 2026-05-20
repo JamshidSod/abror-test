@@ -119,6 +119,27 @@
     applyFilter();
   });
 
+  document.addEventListener("keydown", (ev) => {
+    const inSearch = document.activeElement === els.search;
+    if (ev.key === "/" && !inSearch) {
+      ev.preventDefault();
+      els.search.focus();
+      els.search.select();
+      return;
+    }
+    if (ev.key === "Escape" && inSearch) {
+      els.search.value = "";
+      state.query = "";
+      applyFilter();
+      els.search.blur();
+      return;
+    }
+    if (inSearch) return;
+    if (ev.key === "ArrowRight") { ev.preventDefault(); move(1); }
+    else if (ev.key === "ArrowLeft") { ev.preventDefault(); move(-1); }
+    else if (ev.key === " ") { ev.preventDefault(); toggleReveal(); }
+  });
+
   async function load() {
     const res = await fetch("questions.json");
     state.all = await res.json();
