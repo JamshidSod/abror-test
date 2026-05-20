@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Abror Test Prep</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Abror Test Prep</h1>
+    <div class="counter" id="counter">0 / 0</div>
+  </header>
+
+  <div class="search">
+    <input
+      id="search"
+      type="search"
+      placeholder="Search question or answer…"
+      autocomplete="off"
+      spellcheck="false">
+  </div>
+
+  <main class="card" id="card" aria-live="polite">
+    <div class="qmeta">
+      <span id="q-id">Q—</span>
+      <span id="q-page" class="page-tag">page —</span>
+    </div>
+    <p class="question" id="question">Loading…</p>
+    <button id="reveal" class="reveal" type="button">Show Answer</button>
+    <p class="answer" id="answer" hidden></p>
+    <nav class="nav">
+      <button id="prev" type="button" aria-label="Previous">← Prev</button>
+      <button id="next" type="button" aria-label="Next">Next →</button>
+    </nav>
+  </main>
+
+  <section class="browse">
+    <h2>Browse all <span id="match-count">(0)</span></h2>
+    <ol id="list" class="list"></ol>
+  </section>
+
+  <footer>
+    <p>Source: <code>jpg2pdf (11).pdf</code>. Keyboard: ← → navigate, Space reveal, / search, Esc clear.</p>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
