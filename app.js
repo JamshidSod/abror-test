@@ -97,6 +97,28 @@
     syncListSelection();
   });
 
+  function applyFilter() {
+    const q = state.query.trim().toLowerCase();
+    if (!q) {
+      state.filtered = state.all;
+    } else {
+      state.filtered = state.all.filter(
+        (r) =>
+          r.question.toLowerCase().includes(q) ||
+          r.answer.toLowerCase().includes(q),
+      );
+    }
+    state.index = 0;
+    state.revealed = false;
+    renderList();
+    renderCard();
+  }
+
+  els.search.addEventListener("input", (ev) => {
+    state.query = ev.target.value;
+    applyFilter();
+  });
+
   async function load() {
     const res = await fetch("questions.json");
     state.all = await res.json();
