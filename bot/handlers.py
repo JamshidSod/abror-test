@@ -38,12 +38,35 @@ def load_questions(path: str) -> list[dict]:
     return data
 
 
+def load_distractors(path: str) -> dict[int, list[str]]:
+    """Read the sidecar; convert string keys to int. Raise on malformed input."""
+    with open(path, "r", encoding="utf-8") as f:
+        raw = json.load(f)
+    if not isinstance(raw, dict):
+        raise RuntimeError(f"{path}: expected a JSON object")
+    out: dict[int, list[str]] = {}
+    for k, v in raw.items():
+        try:
+            kid = int(k)
+        except (TypeError, ValueError) as e:
+            raise RuntimeError(f"{path}: non-integer key {k!r}") from e
+        if not isinstance(v, list) or len(v) != 3 or not all(
+            isinstance(x, str) and x.strip() for x in v
+        ):
+            raise RuntimeError(
+                f"{path}: entry for id {kid} must be a list of 3 non-empty strings"
+            )
+        out[kid] = v
+    return out
+
+
 async def _send_next_quiz(
     chat_id: int,
     uid: int,
     context: ContextTypes.DEFAULT_TYPE,
     store: Store,
     questions: Sequence[dict],
+    distractors: dict[int, list[str]],
     rng: random.Random,
     poll_open_seconds: int,
 ) -> None:
@@ -51,7 +74,7 @@ async def _send_next_quiz(
     for _ in range(5):  # at most 5 skip attempts
         q = store.pick_next_question(uid, questions, rng)
         try:
-            quiz = build_quiz(q, questions, rng)
+            quiz = build_quiz(q, distractors, rng)
         except QuizSkip:
             continue
         msg = await context.bot.send_poll(
@@ -83,6 +106,7 @@ async def _send_next_quiz(
 def register_handlers(
     app: Application,
     questions: Sequence[dict],
+    distractors: dict[int, list[str]],
     store: Store,
     rng: random.Random,
     poll_open_seconds: int,
@@ -105,7 +129,7 @@ def register_handlers(
             ),
         )
         await _send_next_quiz(
-            chat.id, user.id, context, store, questions, rng, poll_open_seconds
+            chat.id, user.id, context, store, questions, distractors, rng, poll_open_seconds
         )
 
     async def stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -168,7 +192,7 @@ def register_handlers(
         if not store.get_or_create(uid).active:
             return
         await _send_next_quiz(
-            uid, uid, context, store, questions, rng, poll_open_seconds
+            uid, uid, context, store, questions, distractors, rng, poll_open_seconds
         )
 
     async def stray(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
