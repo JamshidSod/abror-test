@@ -5,11 +5,25 @@ import random
 import signal
 import sys
 
+from telegram import BotCommand
 from telegram.ext import Application
 
 from .config import Config, ConfigError
 from .handlers import load_distractors, load_questions, register_handlers
 from .store import Store
+
+
+COMMANDS = [
+    BotCommand("start", "Begin or resume the quiz stream"),
+    BotCommand("stop", "Pause the stream"),
+    BotCommand("score", "Your lifetime tally"),
+    BotCommand("full", "Show the last quiz's complete Q + A"),
+    BotCommand("help", "List commands"),
+]
+
+
+async def _post_init(app: Application) -> None:
+    await app.bot.set_my_commands(COMMANDS)
 
 
 def main() -> None:
@@ -35,7 +49,12 @@ def main() -> None:
     store = Store(cfg.db_path, recent_history=cfg.recent_history)
     rng = random.Random()
 
-    app = Application.builder().token(cfg.bot_token).build()
+    app = (
+        Application.builder()
+        .token(cfg.bot_token)
+        .post_init(_post_init)
+        .build()
+    )
     register_handlers(app, questions, distractors, store, rng, cfg.poll_open_seconds)
 
     log.info("Starting polling")

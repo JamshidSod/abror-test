@@ -5,7 +5,7 @@ import logging
 import random
 from typing import Sequence
 
-from telegram import Update
+from telegram import KeyboardButton, ReplyKeyboardMarkup, Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -27,6 +27,16 @@ HELP_TEXT = (
     "/score  – your lifetime tally\n"
     "/full   – show the last quiz's complete question and answer\n"
     "/help   – this message"
+)
+
+MAIN_KEYBOARD = ReplyKeyboardMarkup(
+    [
+        [KeyboardButton("/start"), KeyboardButton("/stop")],
+        [KeyboardButton("/score"), KeyboardButton("/full")],
+        [KeyboardButton("/help")],
+    ],
+    resize_keyboard=True,
+    is_persistent=True,
 )
 
 
@@ -127,6 +137,7 @@ def register_handlers(
                 "Answer the poll and I'll send the next one.\n"
                 "/stop to pause, /score for your tally, /help for commands."
             ),
+            reply_markup=MAIN_KEYBOARD,
         )
         await _send_next_quiz(
             chat.id, user.id, context, store, questions, distractors, rng, poll_open_seconds
@@ -138,7 +149,11 @@ def register_handlers(
         if not user or not chat:
             return
         store.set_active(user.id, False)
-        await context.bot.send_message(chat_id=chat.id, text="Paused. /start to resume.")
+        await context.bot.send_message(
+            chat_id=chat.id,
+            text="Paused. /start to resume.",
+            reply_markup=MAIN_KEYBOARD,
+        )
 
     async def score(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user = update.effective_user
@@ -151,7 +166,9 @@ def register_handlers(
         else:
             pct = round(100 * u.correct / u.total)
             text = f"Lifetime: {u.correct}/{u.total} correct ({pct}%)."
-        await context.bot.send_message(chat_id=chat.id, text=text)
+        await context.bot.send_message(
+            chat_id=chat.id, text=text, reply_markup=MAIN_KEYBOARD
+        )
 
     async def full(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user = update.effective_user
@@ -160,23 +177,35 @@ def register_handlers(
             return
         lq = store.get_last_quiz(user.id)
         if lq is None:
-            await context.bot.send_message(chat_id=chat.id, text="No quiz yet. /start to begin.")
+            await context.bot.send_message(
+                chat_id=chat.id,
+                text="No quiz yet. /start to begin.",
+                reply_markup=MAIN_KEYBOARD,
+            )
             return
         q = next((q for q in questions if q["id"] == lq.question_id), None)
         if q is None:
-            await context.bot.send_message(chat_id=chat.id, text="Question not found.")
+            await context.bot.send_message(
+                chat_id=chat.id,
+                text="Question not found.",
+                reply_markup=MAIN_KEYBOARD,
+            )
             return
         text = (
             f"Q{q['id']} (page {q['page']}):\n\n"
             f"{q['question']}\n\n"
             f"Canonical answer:\n{q['answer']}"
         )
-        await context.bot.send_message(chat_id=chat.id, text=text)
+        await context.bot.send_message(
+            chat_id=chat.id, text=text, reply_markup=MAIN_KEYBOARD
+        )
 
     async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat = update.effective_chat
         if chat:
-            await context.bot.send_message(chat_id=chat.id, text=HELP_TEXT)
+            await context.bot.send_message(
+                chat_id=chat.id, text=HELP_TEXT, reply_markup=MAIN_KEYBOARD
+            )
 
     async def on_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         ans = update.poll_answer
@@ -201,6 +230,7 @@ def register_handlers(
             await context.bot.send_message(
                 chat_id=chat.id,
                 text="Tap an answer on the poll, or use /help.",
+                reply_markup=MAIN_KEYBOARD,
             )
 
     app.add_handler(CommandHandler("start", start))
