@@ -21,7 +21,7 @@ class Quiz:
 
 
 def _truncate(text: str, limit: int) -> tuple[str, bool]:
-    if len(text) < limit:
+    if len(text) <= limit:
         return text, False
     return text[: limit - 1] + "…", True
 

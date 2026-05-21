@@ -106,13 +106,14 @@ def test_truncates_long_option():
 
 def test_disambiguates_truncation_collision():
     rng = random.Random(0)
-    # Both correct and one distractor exceed the option cap with the same prefix.
-    prefix = "X" * 99
+    # Both correct and one distractor exceed the option cap with the same prefix
+    # (101 chars > OPTION_LIMIT=100), so truncation produces a collision.
+    prefix = "X" * 100
     q = {"id": 1, "page": 1, "question": "Q?", "answer": prefix + "A"}
     distractors = {1: [prefix + "B", "wrong-1b", "wrong-1c"]}
     quiz = build_quiz(q, distractors, rng)
-    # After truncation both would have been prefix + "…"; disambiguator replaces
-    # the final char of the duplicate with "·".
+    # After truncation both would have been prefix[:99] + "…"; the disambiguator
+    # replaces the final char of the duplicate with "·".
     assert len(set(quiz.options)) == 4
     assert quiz.options[quiz.correct_option_id].endswith("…") or quiz.options[
         quiz.correct_option_id
