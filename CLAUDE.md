@@ -54,4 +54,6 @@ uv run --with python-telegram-bot==21.6 --with pytest pytest tests/test_quiz.py:
 
 ## Deployment
 
-Fly.io app `abror-test-bot`, region `fra`, shared-cpu-1x / 256 MB. SQLite lives on the `bot_data` volume mounted at `/data`. GitHub Actions (`.github/workflows/deploy-bot.yml`) auto-deploys on push to `main` only when `bot/**`, `Dockerfile`, `fly.toml`, `questions.json`, or the workflow itself changes — pure web-app or docs edits do not redeploy. Manual deploy: `flyctl deploy`.
+Fly.io app `abror-test-bot`, region `fra`, shared-cpu-1x / 256 MB. SQLite lives on the `bot_data` volume mounted at `/data`. GitHub Actions (`.github/workflows/deploy-bot.yml`) auto-deploys on push to `main` only when `bot/**`, `Dockerfile`, `fly.toml`, `questions.json`, `data/distractors.json`, or the workflow itself changes — pure web-app or docs edits do not redeploy. Manual deploy: `flyctl deploy`.
+
+**Do not deploy until `data/distractors.json` covers every question.** With partial or empty coverage the bot stays up but `QuizSkip`s every quiz attempt, so the user just sees "No answerable questions found right now." Sanity check before pushing: `python3 scripts/distractors_next_batch.py 1` must print `[]`.
