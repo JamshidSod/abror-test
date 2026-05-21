@@ -128,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             limit = int(argv[0])
         except ValueError:
-            print(f"usage: distractors_next_batch.py [LIMIT]", file=sys.stderr)
+            print("usage: distractors_next_batch.py [LIMIT]", file=sys.stderr)
             return 2
 
     questions = load_questions(DEFAULT_QUESTIONS)
