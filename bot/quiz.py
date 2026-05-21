@@ -1,15 +1,14 @@
-"""Build a 4-option multiple-choice quiz from one question."""
+"""Build a 4-option multiple-choice quiz from one question + its distractors."""
 from __future__ import annotations
 import random
 from dataclasses import dataclass
-from typing import Sequence
 
 QUESTION_LIMIT = 300
 OPTION_LIMIT = 100
 
 
 class QuizSkip(Exception):
-    """Raised when the question is unsuitable (empty fields)."""
+    """Raised when the question can't be turned into a usable quiz."""
 
 
 @dataclass(frozen=True)
@@ -22,40 +21,35 @@ class Quiz:
 
 
 def _truncate(text: str, limit: int) -> tuple[str, bool]:
-    if len(text) <= limit:
+    if len(text) < limit:
         return text, False
     return text[: limit - 1] + "…", True
 
 
-def build_quiz(q: dict, all_questions: Sequence[dict], rng: random.Random) -> Quiz:
+def build_quiz(
+    q: dict,
+    distractors: dict[int, list[str]],
+    rng: random.Random,
+) -> Quiz:
+    qid = q.get("id")
     question_text = q.get("question", "")
     correct = q.get("answer", "")
     if not question_text.strip() or not correct.strip():
-        raise QuizSkip(f"empty question or answer for id={q.get('id')}")
+        raise QuizSkip(f"empty question or answer for id={qid}")
 
-    # Build the wrong-answer pool: other questions, non-empty, not equal to correct.
-    seen: set[str] = {correct}
-    raw_pool: list[str] = []
-    for r in all_questions:
-        if r is q:
-            continue
-        a = r.get("answer", "").strip()
-        if not a or a in seen:
-            continue
-        seen.add(a)
-        raw_pool.append(a)
+    ds = distractors.get(qid)
+    if not isinstance(ds, list) or len(ds) != 3 or not all(
+        isinstance(d, str) and d.strip() for d in ds
+    ):
+        raise QuizSkip(f"no usable distractors for id={qid}")
 
-    # Prefer length-similar answers.
-    lo = 0.6 * len(correct)
-    hi = 1.6 * len(correct)
-    filtered = [a for a in raw_pool if lo <= len(a) <= hi]
-    pool = filtered if len(filtered) >= 3 else raw_pool
+    norm = [d.strip().lower() for d in ds]
+    if len(set(norm)) != 3:
+        raise QuizSkip(f"distractors not distinct for id={qid}")
+    if correct.strip().lower() in norm:
+        raise QuizSkip(f"distractor matches correct for id={qid}")
 
-    if len(pool) < 3:
-        raise QuizSkip(f"insufficient distinct wrong-answer pool for id={q.get('id')}")
-
-    wrong = rng.sample(pool, 3)
-    options = wrong + [correct]
+    options = list(ds) + [correct]
     rng.shuffle(options)
     correct_option_id = options.index(correct)
 
@@ -79,7 +73,7 @@ def build_quiz(q: dict, all_questions: Sequence[dict], rng: random.Random) -> Qu
     correct_option_id = truncated_options.index(new_correct)
 
     return Quiz(
-        question_id=q["id"],
+        question_id=qid,
         question_text=q_text,
         options=tuple(truncated_options),
         correct_option_id=correct_option_id,
