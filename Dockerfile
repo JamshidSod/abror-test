@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir -r /app/bot/requirements.txt
 # Copy code and data.
 COPY bot /app/bot
 COPY questions.json /app/questions.json
+RUN mkdir -p /app/data
+COPY data/distractors.json /app/data/distractors.json
 
 # DB lives on a Fly volume mounted at /data; ensure dir exists locally too.
 RUN mkdir -p /data

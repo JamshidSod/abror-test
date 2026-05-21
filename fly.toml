@@ -6,8 +6,9 @@ primary_region = "fra"
 [build]
 
 [env]
-  QUESTIONS_PATH = "/app/questions.json"
-  DB_PATH        = "/data/bot.sqlite"
+  QUESTIONS_PATH   = "/app/questions.json"
+  DISTRACTORS_PATH = "/app/data/distractors.json"
+  DB_PATH          = "/data/bot.sqlite"
 
 [mounts]
   source      = "bot_data"

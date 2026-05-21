@@ -8,6 +8,7 @@ on:
       - "Dockerfile"
       - "fly.toml"
       - "questions.json"
+      - "data/distractors.json"
       - ".github/workflows/deploy-bot.yml"
   workflow_dispatch:
 
