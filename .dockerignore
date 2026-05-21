@@ -3,7 +3,8 @@
 .github
 docs
 tests
-data
+data/*
+!data/distractors.json
 *.md
 __pycache__
 *.pyc
