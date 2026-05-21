@@ -15,6 +15,7 @@ class ConfigError(RuntimeError):
 class Config:
     bot_token: str
     questions_path: str
+    distractors_path: str
     db_path: str
     recent_history: int
     poll_open_seconds: int
@@ -32,6 +33,7 @@ class Config:
         return cls(
             bot_token=token,
             questions_path=os.environ.get("QUESTIONS_PATH", "questions.json"),
+            distractors_path=os.environ.get("DISTRACTORS_PATH", "data/distractors.json"),
             db_path=os.environ.get("DB_PATH", "/data/bot.sqlite"),
             recent_history=int(os.environ.get("RECENT_HISTORY", "30")),
             poll_open_seconds=int(os.environ.get("POLL_OPEN_SECONDS", "600")),

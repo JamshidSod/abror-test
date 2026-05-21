@@ -39,3 +39,16 @@ def test_overrides(monkeypatch):
     assert cfg.recent_history == 50
     assert cfg.poll_open_seconds == 120
     assert cfg.log_level == "DEBUG"
+
+
+def test_distractors_path_default(monkeypatch):
+    monkeypatch.setenv("BOT_TOKEN", "1234567890:AAH" + "x" * 30)
+    cfg = Config.from_env()
+    assert cfg.distractors_path == "data/distractors.json"
+
+
+def test_distractors_path_override(monkeypatch):
+    monkeypatch.setenv("BOT_TOKEN", "1234567890:AAH" + "x" * 30)
+    monkeypatch.setenv("DISTRACTORS_PATH", "/tmp/d.json")
+    cfg = Config.from_env()
+    assert cfg.distractors_path == "/tmp/d.json"
