@@ -5,7 +5,7 @@ import logging
 import random
 from typing import Sequence
 
-from telegram import KeyboardButton, ReplyKeyboardMarkup, Update
+from telegram import ReplyKeyboardRemove, Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -29,15 +29,9 @@ HELP_TEXT = (
     "/help   – this message"
 )
 
-MAIN_KEYBOARD = ReplyKeyboardMarkup(
-    [
-        [KeyboardButton("/start"), KeyboardButton("/stop")],
-        [KeyboardButton("/score"), KeyboardButton("/full")],
-        [KeyboardButton("/help")],
-    ],
-    resize_keyboard=True,
-    is_persistent=True,
-)
+# Sent on every bot response to clear any persistent reply keyboard a user
+# might still have from an earlier release. Harmless once the keyboard is gone.
+HIDE_KEYBOARD = ReplyKeyboardRemove()
 
 
 def load_questions(path: str) -> list[dict]:
@@ -137,7 +131,7 @@ def register_handlers(
                 "Answer the poll and I'll send the next one.\n"
                 "/stop to pause, /score for your tally, /help for commands."
             ),
-            reply_markup=MAIN_KEYBOARD,
+            reply_markup=HIDE_KEYBOARD,
         )
         await _send_next_quiz(
             chat.id, user.id, context, store, questions, distractors, rng, poll_open_seconds
@@ -152,7 +146,7 @@ def register_handlers(
         await context.bot.send_message(
             chat_id=chat.id,
             text="Paused. /start to resume.",
-            reply_markup=MAIN_KEYBOARD,
+            reply_markup=HIDE_KEYBOARD,
         )
 
     async def score(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -167,7 +161,7 @@ def register_handlers(
             pct = round(100 * u.correct / u.total)
             text = f"Lifetime: {u.correct}/{u.total} correct ({pct}%)."
         await context.bot.send_message(
-            chat_id=chat.id, text=text, reply_markup=MAIN_KEYBOARD
+            chat_id=chat.id, text=text, reply_markup=HIDE_KEYBOARD
         )
 
     async def full(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -180,7 +174,7 @@ def register_handlers(
             await context.bot.send_message(
                 chat_id=chat.id,
                 text="No quiz yet. /start to begin.",
-                reply_markup=MAIN_KEYBOARD,
+                reply_markup=HIDE_KEYBOARD,
             )
             return
         q = next((q for q in questions if q["id"] == lq.question_id), None)
@@ -188,7 +182,7 @@ def register_handlers(
             await context.bot.send_message(
                 chat_id=chat.id,
                 text="Question not found.",
-                reply_markup=MAIN_KEYBOARD,
+                reply_markup=HIDE_KEYBOARD,
             )
             return
         text = (
@@ -197,14 +191,14 @@ def register_handlers(
             f"Canonical answer:\n{q['answer']}"
         )
         await context.bot.send_message(
-            chat_id=chat.id, text=text, reply_markup=MAIN_KEYBOARD
+            chat_id=chat.id, text=text, reply_markup=HIDE_KEYBOARD
         )
 
     async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat = update.effective_chat
         if chat:
             await context.bot.send_message(
-                chat_id=chat.id, text=HELP_TEXT, reply_markup=MAIN_KEYBOARD
+                chat_id=chat.id, text=HELP_TEXT, reply_markup=HIDE_KEYBOARD
             )
 
     async def on_poll_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -230,7 +224,7 @@ def register_handlers(
             await context.bot.send_message(
                 chat_id=chat.id,
                 text="Tap an answer on the poll, or use /help.",
-                reply_markup=MAIN_KEYBOARD,
+                reply_markup=HIDE_KEYBOARD,
             )
 
     app.add_handler(CommandHandler("start", start))
